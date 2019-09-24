@@ -2,6 +2,12 @@
 #include <SoftwareSerial.h>
 #include <Servo.h> 
 
+#define echoPin 2 // Echo Pin
+#define trigPin 4 // Trigger Pin
+double Duration = 0; //受信した間隔
+double Distance = 0; //距離
+int distanceCounter = 0;
+
 //bluetooth
 const byte btRxPin = 10;
 const byte btTxPin = 11;
@@ -32,6 +38,7 @@ void stepOnGasPedal(char c);
 void stopMotor();
 void toggleLED();
 void rotateDCMotor();
+void analyzeDistance();
 
 void setup() {  
     //serial communication to config HC-05
@@ -51,6 +58,9 @@ void setup() {
     pinMode(L293D_2APin,OUTPUT);
     digitalWrite(L293D_ENable1Pin,LOW);
     motorSpeed = initialMotorSpeed;
+    //distance censor
+    pinMode( echoPin, INPUT );
+    pinMode( trigPin, OUTPUT );
     //LED
     pinMode(LEDPin,OUTPUT); 
     digitalWrite(LEDPin,HIGH);
@@ -81,6 +91,9 @@ void loop()
 
     //dc motor
     rotateDCMotor();
+
+    //distance sensor
+    analyzeDistance();
 }
 
 void steerWheel(char c){
@@ -145,4 +158,23 @@ void toggleLED(){
     digitalWrite(LEDPin,LOW);
     LEDstatus=0;
   }
+}
+
+void analyzeDistance(){
+  if(distanceCounter%80000==0) {
+    digitalWrite(trigPin, LOW); 
+    delayMicroseconds(2); 
+    digitalWrite( trigPin, HIGH ); //超音波を出力
+    delayMicroseconds( 10 ); //
+    digitalWrite( trigPin, LOW );
+    Duration = pulseIn( echoPin, HIGH ); //センサからの入力
+    if (Duration > 0) {
+      Duration = Duration/2; //往復距離を半分にする
+      Distance = Duration*340*100/1000000; // 音速を340m/sに設定
+      Serial.print("Distance:");
+      Serial.print(Distance);
+      Serial.println(" cm");
+    }
+  }
+  distanceCounter+=1;
 }
