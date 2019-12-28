@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <Servo.h> 
-//testBranch
 
 //bluetooth HC-05
 #define btRxPin 10
@@ -12,15 +11,16 @@ char receivedChar;
 #define servoPin 9
 Servo servo1;
 int initialAngle;
-const int limitAngle = 25;
-const int steerAngle = 8; 
+const int limitAngle = 40;
+const int steerAngle = 10; 
 //dc motor
 #define L293D_ENable1Pin 3
 #define L293D_1APin 5
 #define L293D_2APin 6
 int drivingDirection = 0; //0=stop,1=forward,-1=backward
 int motorSpeed; //current motorspeed. value is between 0-255
-const uint8_t initialMotorSpeed = 120; //initial speed when accel button is pressed
+const uint8_t initialMotorSpeed = 195; //initial speed when accel button is pressed
+const uint8_t accelerationTempo = 20;
 //ultra sonic distance sensor HC-SR04
 #define echoPin 2
 #define trigPin 4
@@ -71,7 +71,7 @@ void setup() {
 void loop()
 {
     if (btport.available()){
-        //show a char in serial which received from bluetooth app
+        //show a char in serial console which received from bluetooth app
         showReceivedChar();
         
         //execute a action
@@ -130,8 +130,8 @@ void stepOnGasPedal(char c){
       drivingDirection = 1;
       motorSpeed = initialMotorSpeed;
     }else{
-      if(motorSpeed<= 255){
-        motorSpeed+=20;
+      if(motorSpeed + accelerationTempo <= 255){
+        motorSpeed+=accelerationTempo;
       }
     }
   }else if(c == 'b'){
@@ -139,8 +139,8 @@ void stepOnGasPedal(char c){
       drivingDirection = -1;
       motorSpeed = initialMotorSpeed;
     }else{
-      if(motorSpeed<= 255){
-        motorSpeed+=20;
+      if(motorSpeed + accelerationTempo <= 255){
+        motorSpeed+=accelerationTempo;
       }
     }
   }
